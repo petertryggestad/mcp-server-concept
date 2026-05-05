@@ -34,7 +34,6 @@ public class ClaudeService
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
         request.Headers.Add("x-api-key", _apiKey);
         request.Headers.Add("anthropic-version", "2023-06-01");
-        request.Headers.Add("anthropic-beta", "mcp-client-1.0");
         request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
 
         var response = await _client.SendAsync(request);
