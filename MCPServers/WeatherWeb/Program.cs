@@ -9,6 +9,7 @@ builder.Services.AddHttpClient("default", client =>
 
 builder.Services.AddScoped<WeatherService>();
 builder.Services.AddScoped<GeocodingService>();
+builder.Services.AddScoped<ClaudeService>();
 
 builder.Services.AddAuthentication("Cookies")
     .AddCookie(options =>
