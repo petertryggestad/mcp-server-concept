@@ -10,6 +10,12 @@ builder.Services.AddHttpClient("default", client =>
 builder.Services.AddScoped<WeatherService>();
 builder.Services.AddScoped<GeocodingService>();
 builder.Services.AddScoped<ClaudeService>();
+builder.Services.AddSingleton(sp =>
+{
+    var url = sp.GetRequiredService<IConfiguration>()["WeatherForecast:McpUrl"]
+        ?? throw new InvalidOperationException("WeatherForecast:McpUrl ikke konfigurert");
+    return new WeatherWeb.Services.McpWeatherClient(url);
+});
 
 builder.Services.AddAuthentication("Cookies")
     .AddCookie(options =>
