@@ -7,7 +7,6 @@ public class ClaudeService
 {
     private readonly HttpClient _client;
     private readonly string _apiKey;
-    private const string McpServerUrl = "https://weatherforecast.salmonforest-88c883e8.norwayeast.azurecontainerapps.io/mcp";
 
     public ClaudeService(IHttpClientFactory factory, IConfiguration config)
     {
@@ -15,20 +14,18 @@ public class ClaudeService
         _apiKey = config["Anthropic:ApiKey"] ?? throw new InvalidOperationException("Anthropic:ApiKey ikke konfigurert");
     }
 
-    public async Task<string> AskAsync(string question)
+    public async Task<string> AskAsync(string question, string? weatherContext = null)
     {
+        var content = weatherContext != null
+            ? $"Værinformasjon fra met.no:\n{weatherContext}\n\nSpørsmål: {question}"
+            : question;
+
         var body = new
         {
             model = "claude-sonnet-4-6",
             max_tokens = 1024,
-            mcp_servers = new[]
-            {
-                new { type = "url", url = McpServerUrl, name = "weatherforecast" }
-            },
-            messages = new[]
-            {
-                new { role = "user", content = question }
-            }
+            system = "Du er en hjelpsom værmelding-assistent. Svar alltid på norsk. Gi klare og vennlige værbeskrivelser basert på dataene du får.",
+            messages = new[] { new { role = "user", content } }
         };
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");

@@ -8,7 +8,7 @@ namespace WeatherWeb.Pages;
 public record CityWeather(string City, string Country, string Flag, CurrentWeather? Weather);
 
 [Authorize]
-public class IndexModel(WeatherService weather, ClaudeService claude) : PageModel
+public class IndexModel(WeatherService weather, ClaudeService claude, GeocodingService geocoding) : PageModel
 {
     public List<CityWeather> Cities { get; private set; } = [];
     public string? Question { get; private set; }
@@ -40,7 +40,15 @@ public class IndexModel(WeatherService weather, ClaudeService claude) : PageMode
         Question = question;
         try
         {
-            Answer = await claude.AskAsync(question);
+            string? weatherContext = null;
+            var geo = await geocoding.GeocodeAsync(question);
+            if (geo != null)
+            {
+                var w = await weather.GetCurrentWeatherAsync(geo.Latitude, geo.Longitude);
+                if (w != null)
+                    weatherContext = $"Sted: {geo.DisplayName}\nTemperatur: {w.Temperature:F1}°C\nVær: {w.WeatherType}\nVind: {w.WindSpeed:F1} m/s {w.WindDirection}\nFuktighet: {w.Humidity:F0}%";
+            }
+            Answer = await claude.AskAsync(question, weatherContext);
         }
         catch (Exception ex)
         {
