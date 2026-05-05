@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/MCPServers/">
     <Project Path="MCPServers/Shared/Shared.csproj" />
+    <Project Path="MCPServers/WeatherForecast/WeatherForecast.csproj" />
   </Folder>
 </Solution>

@@ -1,0 +1,27 @@
+name: Build and Push WeatherForecast Docker Image to ACR
+
+on:
+  push:
+    paths:
+      - 'MCPServers/WeatherForecast/**'
+      - '.github/workflows/docker-publish-weatherforecast.yml'
+      - 'Infrastructure/containerApp-WeatherForecast.bicepparam'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  call-docker-publish:
+    uses: ./.github/workflows/docker-publish-template.yml
+    with:
+      mcp_server: 'WeatherForecast'
+      image_name: 'weatherforecast'
+      docker_context: 'MCPServers'
+    secrets: inherit
+
+  deploy-container-app:
+    needs: call-docker-publish
+    uses: ./.github/workflows/docker-deploy-containerapp-template.yml
+    with:
+      parameter_file_name: containerApp-WeatherForecast.bicepparam
+    secrets: inherit

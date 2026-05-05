@@ -1,4 +1,13 @@
 {
   "version": "0.2.0",
-  "configurations": []
+  "configurations": [
+    {
+      "name": "WeatherForecast",
+      "type": "dotnet",
+      "request": "launch",
+      "projectPath": "${workspaceFolder}/MCPServers/WeatherForecast/WeatherForecast.csproj",
+      "env": { "ASPNETCORE_ENVIRONMENT": "Development" },
+      "preLaunchTask": "build WeatherForecast"
+    }
+  ]
 }
