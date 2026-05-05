@@ -1,6 +1,3 @@
-@description('The Azure region to deploy resources into')
-param location string = resourceGroup().location
-
 @description('Environment Name - used to find the Container Apps Environment and ACR')
 param environmentName string
 
