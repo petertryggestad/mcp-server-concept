@@ -1,30 +1,102 @@
 @page
 @model WeatherWeb.Pages.IndexModel
 @{
-    ViewData["Title"] = "Værmelding";
+    ViewData["Title"] = "Vær";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-7">
-        <form method="post" class="d-flex gap-2 mb-4">
+@functions {
+    string WeatherEmoji(string type) => type switch
+    {
+        "Klart"         => "☀️",
+        "Lettskyet"     => "🌤",
+        "Delvis skyet"  => "⛅",
+        "Overskyet"     => "☁️",
+        "Tåke"          => "🌫",
+        "Regn"          => "🌧",
+        "Lett regn"     => "🌦",
+        "Kraftig regn"  => "⛈",
+        "Torden"        => "⛈",
+        "Snø"           => "❄️",
+        "Sludd"         => "🌨",
+        "Yr"            => "🌦",
+        _               => "🌡"
+    };
+}
+
+<div class="row justify-content-center mb-5">
+    <div class="col-md-8">
+        <div class="text-center mb-4">
+            <div class="section-title mb-3">Spør Claude om været</div>
+        </div>
+        <form method="post" class="d-flex gap-2">
             <input type="text" name="question" value="@Model.Question"
-                   class="form-control" placeholder="Spør om været, f.eks. Hva er været i Bergen?" required />
-            <button type="submit" class="btn btn-primary px-4">Spør</button>
+                   class="form-control search-box flex-grow-1"
+                   placeholder="Hva er været i Paris i morgen?" />
+            <button type="submit" class="btn btn-search text-white">Spør</button>
         </form>
 
         @if (!string.IsNullOrEmpty(Model.Error))
         {
-            <div class="alert alert-danger">@Model.Error</div>
+            <div class="alert alert-danger mt-3 rounded-3">@Model.Error</div>
         }
 
         @if (!string.IsNullOrEmpty(Model.Answer))
         {
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <p class="text-muted small mb-2">🤖 Claude svarer via MCP-serveren din</p>
-                    <p style="white-space: pre-wrap;">@Model.Answer</p>
+            <div class="answer-card mt-3">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span>🤖</span>
+                    <span class="section-title">Claude svarer</span>
                 </div>
+                <p class="mb-0" style="white-space: pre-wrap; line-height: 1.7; color: #cbd5e1;">@Model.Answer</p>
             </div>
         }
     </div>
 </div>
+
+<div class="section-title text-center mb-4">De 5 største byene i verden</div>
+<div class="row g-3 justify-content-center">
+    @foreach (var city in Model.Cities)
+    {
+        <div class="col-6 col-md-4 col-lg-2-4">
+            <div class="weather-card h-100">
+                @if (city.Weather != null)
+                {
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <div class="city-name">@city.City</div>
+                            <div class="stat-label">@city.Flag @city.Country</div>
+                        </div>
+                        <div class="weather-emoji">@WeatherEmoji(city.Weather.WeatherType)</div>
+                    </div>
+                    <div class="temp-big text-white mb-3">@city.Weather.Temperature.ToString("F0")°</div>
+                    <div class="d-flex flex-column gap-1">
+                        <div>
+                            <div class="stat-label">Vær</div>
+                            <div class="stat-value">@city.Weather.WeatherType</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Vind</div>
+                            <div class="stat-value">@city.Weather.WindSpeed.ToString("F1") m/s @city.Weather.WindDirection</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Fuktighet</div>
+                            <div class="stat-value">@city.Weather.Humidity.ToString("F0")%</div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="city-name mb-2">@city.City</div>
+                    <div class="stat-label">@city.Flag @city.Country</div>
+                    <div class="text-muted mt-3 small">Ikke tilgjengelig</div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .col-lg-2-4 { width: 20%; }
+    @@media (max-width: 992px) { .col-lg-2-4 { width: 33.33%; } }
+    @@media (max-width: 576px) { .col-lg-2-4 { width: 50%; } }
+</style>
