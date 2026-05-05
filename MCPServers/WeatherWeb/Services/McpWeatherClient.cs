@@ -22,7 +22,7 @@ public class McpWeatherClient : IAsyncDisposable
                 var transport = new HttpClientTransport(new HttpClientTransportOptions
                 {
                     Endpoint = new Uri(_endpoint),
-                    TransportMode = HttpTransportMode.StreamableHttp
+                    TransportMode = HttpTransportMode.Sse
                 });
                 _client = await McpClient.CreateAsync(transport, cancellationToken: ct);
             }
