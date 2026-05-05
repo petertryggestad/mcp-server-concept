@@ -1,0 +1,31 @@
+@page
+@model WeatherWeb.Pages.LoginModel
+@{
+    ViewData["Title"] = "Logg inn";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h4 class="card-title mb-4">Logg inn</h4>
+                @if (!string.IsNullOrEmpty(Model.Error))
+                {
+                    <div class="alert alert-danger">@Model.Error</div>
+                }
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Brukernavn</label>
+                        <input type="text" name="Username" class="form-control" required autofocus />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Passord</label>
+                        <input type="password" name="Password" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Logg inn</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

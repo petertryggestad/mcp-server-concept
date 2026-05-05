@@ -1,0 +1,27 @@
+name: Build and Push WeatherWeb Docker Image to ACR
+
+on:
+  push:
+    paths:
+      - 'MCPServers/WeatherWeb/**'
+      - '.github/workflows/docker-publish-weatherweb.yml'
+      - 'Infrastructure/containerApp-WeatherWeb.bicepparam'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  call-docker-publish:
+    uses: ./.github/workflows/docker-publish-template.yml
+    with:
+      mcp_server: 'WeatherWeb'
+      image_name: 'weatherweb'
+      docker_context: 'MCPServers'
+    secrets: inherit
+
+  deploy-container-app:
+    needs: call-docker-publish
+    uses: ./.github/workflows/docker-deploy-containerapp-template.yml
+    with:
+      parameter_file_name: containerApp-WeatherWeb.bicepparam
+    secrets: inherit

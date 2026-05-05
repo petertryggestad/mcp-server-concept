@@ -16,6 +16,9 @@ param environment array = []
 @description('Minimum number of container app instances')
 param minReplicas int = 0
 
+@description('Port the container listens on')
+param targetPort int = 4547
+
 targetScope = 'subscription'
 
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' existing = {
@@ -57,7 +60,7 @@ module containerApp 'br/public:avm/res/app/container-app:0.19.0' = {
       pollingInterval: 30
     }
     environmentResourceId: managedEnvironment.id
-    ingressTargetPort: 4547
+    ingressTargetPort: targetPort
     ingressTransport: 'auto'
     ingressExternal: true
     ingressAllowInsecure: false
