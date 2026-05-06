@@ -1,57 +1,27 @@
-using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol;
+using System.Globalization;
 
 namespace WeatherWeb.Services;
 
-public class McpWeatherClient : IAsyncDisposable
+public class McpWeatherClient
 {
-    private readonly string _endpoint;
-    private McpClient? _client;
-    private readonly SemaphoreSlim _sem = new(1, 1);
+    private readonly HttpClient _client;
+    private readonly string _baseUrl;
 
-    public McpWeatherClient(string endpoint) => _endpoint = endpoint;
-
-    private async Task<McpClient> GetClientAsync(CancellationToken ct = default)
+    public McpWeatherClient(IHttpClientFactory factory, string baseUrl)
     {
-        if (_client is not null) return _client;
-        await _sem.WaitAsync(ct);
-        try
-        {
-            if (_client is null)
-            {
-                var transport = new HttpClientTransport(new HttpClientTransportOptions
-                {
-                    Endpoint = new Uri(_endpoint),
-                    TransportMode = HttpTransportMode.Sse
-                });
-                _client = await McpClient.CreateAsync(transport, cancellationToken: ct);
-            }
-            return _client;
-        }
-        finally { _sem.Release(); }
+        _client = factory.CreateClient("default");
+        _baseUrl = baseUrl.TrimEnd('/');
     }
 
-    public async Task<string> GetCurrentWeatherAsync(double lat, double lon, CancellationToken ct = default)
+    public async Task<string> GetCurrentWeatherAsync(double lat, double lon)
     {
-        var client = await GetClientAsync(ct);
-        var result = await client.CallToolAsync("GetCurrentWeather",
-            new Dictionary<string, object?> { ["latitude"] = lat, ["longitude"] = lon },
-            cancellationToken: ct);
-        return string.Concat(result.Content.OfType<TextContentBlock>().Select(c => c.Text));
+        var url = $"{_baseUrl}/weather/current?lat={lat.ToString(CultureInfo.InvariantCulture)}&lon={lon.ToString(CultureInfo.InvariantCulture)}";
+        return await _client.GetStringAsync(url);
     }
 
-    public async Task<string> GetWeatherForecastAsync(double lat, double lon, int hours = 24, CancellationToken ct = default)
+    public async Task<string> GetWeatherForecastAsync(double lat, double lon, int hours = 24)
     {
-        var client = await GetClientAsync(ct);
-        var result = await client.CallToolAsync("GetWeatherForecast",
-            new Dictionary<string, object?> { ["latitude"] = lat, ["longitude"] = lon, ["hours"] = hours },
-            cancellationToken: ct);
-        return string.Concat(result.Content.OfType<TextContentBlock>().Select(c => c.Text));
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_client is not null)
-            await _client.DisposeAsync();
+        var url = $"{_baseUrl}/weather/forecast?lat={lat.ToString(CultureInfo.InvariantCulture)}&lon={lon.ToString(CultureInfo.InvariantCulture)}&hours={hours}";
+        return await _client.GetStringAsync(url);
     }
 }

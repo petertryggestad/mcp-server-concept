@@ -12,9 +12,10 @@ builder.Services.AddScoped<GeocodingService>();
 builder.Services.AddScoped<ClaudeService>();
 builder.Services.AddSingleton(sp =>
 {
-    var url = sp.GetRequiredService<IConfiguration>()["WeatherForecast:McpUrl"]
-        ?? throw new InvalidOperationException("WeatherForecast:McpUrl ikke konfigurert");
-    return new WeatherWeb.Services.McpWeatherClient(url);
+    var url = sp.GetRequiredService<IConfiguration>()["WeatherForecast:BaseUrl"]
+        ?? throw new InvalidOperationException("WeatherForecast:BaseUrl ikke konfigurert");
+    var factory = sp.GetRequiredService<IHttpClientFactory>();
+    return new WeatherWeb.Services.McpWeatherClient(factory, url);
 });
 
 builder.Services.AddAuthentication("Cookies")
