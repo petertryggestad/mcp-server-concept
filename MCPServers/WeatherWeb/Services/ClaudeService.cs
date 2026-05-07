@@ -22,7 +22,17 @@ public class ClaudeService
     public async Task<string> AskAsync(string question)
     {
         // Geocode and fetch weather before calling Claude — avoids multiple Claude round-trips
+        // Try full question first, then individual words (Nominatim handles city names better than sentences)
         var geo = await _geocoding.GeocodeAsync(question);
+        if (geo == null)
+        {
+            foreach (var word in question.Split(' ', StringSplitOptions.RemoveEmptyEntries).Reverse())
+            {
+                if (word.Length < 3) continue;
+                geo = await _geocoding.GeocodeAsync(word);
+                if (geo != null) break;
+            }
+        }
 
         string? weatherContext = null;
         if (geo != null)
@@ -37,14 +47,18 @@ public class ClaudeService
         }
 
         var userContent = weatherContext != null
-            ? $"Værinformasjon fra met.no/Yr (hentet via WeatherForecast MCP-server):\n{weatherContext}\n\nSpørsmål: {question}"
+            ? $"Her er sanntidsværdata hentet akkurat nå fra met.no via WeatherForecast-tjenesten:\n\n{weatherContext}\n\nBruk disse dataene til å svare på spørsmålet: {question}"
             : question;
+
+        var systemPrompt = weatherContext != null
+            ? "Du er en hjelpsom værmelding-assistent. Du har mottatt ekte sanntidsværdata fra met.no/Yr. Bruk alltid disse dataene i svaret ditt. Svar på norsk med en vennlig og klar værbeskrivelse."
+            : "Du er en hjelpsom værmelding-assistent. Svar på norsk. Hvis du ikke har værdata, be brukeren spesifisere stedet tydeligere.";
 
         var body = new
         {
             model = "claude-sonnet-4-6",
             max_tokens = 1024,
-            system = "Du er en hjelpsom værmelding-assistent. Svar alltid på norsk. Gi klare og vennlige værbeskrivelser basert på dataene du får.",
+            system = systemPrompt,
             messages = new[] { new { role = "user", content = userContent } }
         };
 
