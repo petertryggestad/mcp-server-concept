@@ -21,17 +21,17 @@ public class ClaudeService
 
     public async Task<string> AskAsync(string question)
     {
-        // Geocode and fetch weather before calling Claude — avoids multiple Claude round-trips
-        // Try full question first, then individual words (Nominatim handles city names better than sentences)
-        var geo = await _geocoding.GeocodeAsync(question);
-        if (geo == null)
+        // Extract capitalized words (likely place names) and try to geocode them
+        var words = question.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(w => w.Trim('.', '?', '!', ',', ';', ':'))
+            .Where(w => w.Length >= 2 && char.IsUpper(w[0]))
+            .ToList();
+
+        GeocodingResult? geo = null;
+        foreach (var word in words)
         {
-            foreach (var word in question.Split(' ', StringSplitOptions.RemoveEmptyEntries).Reverse())
-            {
-                if (word.Length < 3) continue;
-                geo = await _geocoding.GeocodeAsync(word);
-                if (geo != null) break;
-            }
+            geo = await _geocoding.GeocodeAsync(word);
+            if (geo != null) break;
         }
 
         string? weatherContext = null;
